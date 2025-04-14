@@ -1,5 +1,9 @@
 local mod = get_mod("CrosshairCustomization")
 
+mod:hook(GenericHitReactionExtension, "_execute_effect", function(func, self, unit, effect_template, biggest_hit, parameters, ...)
+      local damage_type = biggest_hit[DamageDataIndex.DAMAGE_TYPE]
+      local mod = get_mod("CrosshairCustomization")
+
 local pl = require'pl.import_into'()
 local tablex = require'pl.tablex'
 
@@ -94,22 +98,6 @@ mod:hook_safe(CrosshairUI, "configure_hit_marker_color_and_size", function (self
 	local hm_rot_texture = hit_marker.style.rotating_texture
 	local hm_color = hm_rot_texture.color
 
-	if not is_armored and not friendly_fire and not is_critical then
-		if mod:get(mod.SETTING_NAMES.HIT_MARKERS_COLOR_GROUP) then
-			hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_RED)
-			hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_GREEN)
-			hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_BLUE)
-		else
-			local color = mod.get_color()
-			hm_color[2] = color[2]
-			hm_color[3] = color[3]
-			hm_color[4] = color[4]
-		end
-
-		hm_color[1] = 0
-	end
-
-	-- change the headshot hit marker color
 	if is_armored then
 		if mod:get(mod.SETTING_NAMES.HIT_MARKERS_ARMORED_COLOR_GROUP) then
 			hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_ARMORED_RED)
@@ -122,23 +110,55 @@ mod:hook_safe(CrosshairUI, "configure_hit_marker_color_and_size", function (self
 			hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_FF_GREEN)
 			hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_FF_BLUE)
 		end
-	elseif is_critical
-	and hit_marker_data._mod_is_crit_proc
+	end
+
+        local color_set = false
+
+        if is_critical and not friendly_fire and hit_marker_data._mod_is_crit_proc and not (damage_type == "arrow_poison_dot" or damage_type == "bleed" or damage_type == "burninating")
 	and mod:get(mod.SETTING_NAMES.HIT_MARKERS_HS_AND_CRIT_COLOR_GROUP) then
 		hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_HS_AND_CRIT_RED)
 		hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_HS_AND_CRIT_GREEN)
 		hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_HS_AND_CRIT_BLUE)
-	elseif is_critical
+        color_set = true
+
+	elseif is_critical and not friendly_fire and not (damage_type == "arrow_poison_dot" or damage_type == "bleed" or damage_type == "burninating")
 	and mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_COLOR_GROUP) then
 		hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_RED)
 		hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_GREEN)
 		hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_BLUE)
-	elseif hit_marker_data._mod_is_crit_proc
+        color_set = true
+
+	elseif hit_marker_data._mod_is_crit_proc and not friendly_fire and not (damage_type == "arrow_poison_dot" or damage_type == "bleed" or damage_type == "burninating")
 	and mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_PROC_COLOR_GROUP) then
 		hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_PROC_RED)
 		hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_PROC_GREEN)
 		hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_CRITICAL_PROC_BLUE)
+        color_set = true
 	end
+
+	if not color_set and not friendly_fire and (damage_type == "arrow_poison_dot" or damage_type == "bleed" or damage_type == "burninating") then
+		if mod:get(mod.SETTING_NAMES.HIT_MARKERS_DOT_COLOR_GROUP) then
+		        hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_DOT_RED)
+		        hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_DOT_GREEN)
+		        hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_DOT_BLUE)
+		else
+			local color = mod.get_color()
+			hm_color[2] = color[2]
+			hm_color[3] = color[3]
+			hm_color[4] = color[4]
+		end
+
+		hm_color[1] = 0
+                end
+
+        if not color_set and not friendly_fire and added_dot then
+                if mod:get(mod.SETTING_NAMES.HIT_MARKERS_COLOR_GROUP) then
+			hm_color[2] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_RED)
+			hm_color[3] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_GREEN)
+			hm_color[4] = mod:get(mod.SETTING_NAMES.HIT_MARKERS_BLUE)
+                end
+	end
+
 
 	-- change hit marker size
 	local hit_marker_width = mod:get(mod.SETTING_NAMES.HIT_MARKERS_SIZE)
@@ -357,3 +377,6 @@ mod.dot_toggle = function()
 end
 
 mod.set_hit_marker_duration()
+
+    func(self, unit, effect_template, biggest_hit, parameters, ...)
+end)
