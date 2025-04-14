@@ -146,7 +146,13 @@ return {
 	HIT_MARKERS_COLOR_GROUP_T = {
 		en = "Set RGB color of the hit markers."
 	},
-	HIT_MARKERS_CRITICAL_COLOR_GROUP = {
+        HIT_MARKERS_DOT_COLOR_GROUP = {
+		en = "DoT Hit Markers Color"
+	},
+	HIT_MARKERS_DOT_COLOR_GROUP_T = {
+		en = "Set RGB color of the DoT hit markers."
+	},
+        HIT_MARKERS_CRITICAL_COLOR_GROUP = {
 		en = "Headshot Hit Markers Color"
 	},
 	HIT_MARKERS_CRITICAL_COLOR_GROUP_T = {
